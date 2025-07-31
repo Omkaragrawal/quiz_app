@@ -1,3 +1,17 @@
+import { type DateTime } from "luxon";
+
+export interface User {
+  id: number;
+  name: string;
+  createdAt: string | DateTime;
+  updatedAt: string | DateTime;
+}
+
+export type QuizType = {
+  question: string;
+  option: string[];
+  answer: 0 | 1 | 2 | 3;
+}[];
 export enum EnvironmentKeysEnum {
   // eslint-disable-next-line @typescript-eslint/naming-convention
   NODE_ENV = "NODE_ENV",

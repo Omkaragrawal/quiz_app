@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import type {} from "../../../../types/index";
+import type { QuizType } from "../../../../types/index";
 import express from "express";
 import type { Request, Response } from "express";
 import {
@@ -25,7 +24,7 @@ app.get("/quiz", async (req: Request, res: Response): Promise<void> => {
 
   await Promise.resolve();
 
-  const quiz = {};
+  const quiz = [] as QuizType;
 
   res.json(quiz);
 });
@@ -53,7 +52,9 @@ app.get(
       res.status(403).json(validationResult(req).array());
       return;
     }
+    // const { id } = matchedData<{ id: number }>(req);
     matchedData<{ id: number }>(req);
+
     await Promise.resolve();
 
     if (!req.user?.id) {
@@ -61,7 +62,7 @@ app.get(
       return;
     }
 
-    const quiz = {};
+    const quiz = [] as QuizType;
 
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!quiz) {
@@ -105,6 +106,15 @@ app.post(
         toArray: true,
         errorMessage: "Please enter valid options",
       },
+      "quiz.*.options.*": {
+        exists: { options: { checkNull: true } },
+        isString: true,
+        escape: true,
+        isLength: { options: { min: 5 } },
+        notEmpty: { options: { ignore_whitespace: true } },
+        trim: true,
+        errorMessage: "Please enter a valid option",
+      },
       "quiz.*.answer": {
         exists: { options: { checkNull: true } },
         isInt: { options: { min: 0, max: 3 } },
@@ -130,8 +140,9 @@ app.post(
         res.status(403).json(validationResult(req).array());
         return;
       }
+      // const { quiz } = matchedData<{
       matchedData<{
-        quiz: unknown[];
+        quiz: QuizType;
         notes?: string | null;
       }>(req);
 
@@ -141,7 +152,7 @@ app.post(
       const expiresAt = new Date(now);
       expiresAt.setDate(expiresAt.getDate() + 14); // 14 days by default
 
-      const newQuiz = [] as unknown[];
+      const newQuiz = [] as QuizType;
 
       res.status(201).json(newQuiz);
     } catch (err) {
@@ -223,7 +234,7 @@ app.patch(
       }
       const { id, notes: newNote } = matchedData<{
         id: number;
-        quiz: unknown[];
+        quiz: QuizType;
         notes?: string | null;
       }>(req);
 

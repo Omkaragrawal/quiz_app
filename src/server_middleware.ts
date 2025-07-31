@@ -6,7 +6,7 @@ import { createStream } from "rotating-file-stream";
 import winston from "winston";
 import expressRateLimit from "express-rate-limit";
 import helmet from "helmet";
-import { CookieNamesEnum } from "./types/index";
+import { CookieNamesEnum, type User } from "./types/index";
 import * as jose from "jose";
 import env from "#utils/env";
 
@@ -165,19 +165,18 @@ export const quizRouteAuthenticationMiddleware = async (
   }
 
   try {
-    // const { payload } = await jose.jwtVerify(
-    await jose.jwtVerify(
+    const { payload } = await jose.jwtVerify(
       token,
       new TextEncoder().encode(env.JWT_SECRET as string),
     );
 
-    // req.user = payload as Record<string, unknown>;
-    // req.user.createdAt = DateTime.fromISO(
-    //   req.user.createdAt as unknown as string,
-    // );
-    // req.user.updatedAt = DateTime.fromISO(
-    //   req.user.updatedAt as unknown as string,
-    // );
+    req.user = payload as unknown as User;
+    req.user.createdAt = DateTime.fromISO(
+      req.user.createdAt as unknown as string,
+    );
+    req.user.updatedAt = DateTime.fromISO(
+      req.user.updatedAt as unknown as string,
+    );
     next();
   } catch (err) {
     res.clearCookie(CookieNamesEnum.RANDOM_COOKIE_NAME);
