@@ -1,7 +1,7 @@
-import { type QuizType } from "types";
+import { type UserType } from "types";
 import BaseModel from "./BaseModel";
 
-class UserModel extends BaseModel<QuizType> {
+class UserModel extends BaseModel<UserType> {
   protected override isWriting = false;
 
   protected override filePath = "../data/user.json";

@@ -12,13 +12,34 @@ class QuizModel extends BaseModel<QuizType> {
 
   protected override modelName = "Quiz";
 
+  public override async getAll(): Promise<QuizType[]> {
+    while (this.isWriting) {
+      await delay(10);
+    }
+
+    winstonLogger.info(`fetching all data for ${this.modelName}`);
+
+    return (
+      JSON.parse(await fs.readFile(this.filePath, "utf8")) as QuizType[]
+    ).map(
+      (quiz, id) =>
+        ({
+          id,
+          data: quiz.map((question) => ({
+            question: question.question,
+            option: question.option,
+          })),
+        }) as unknown as QuizType,
+    );
+  }
+
   public override async findById(id: number): Promise<QuizType> {
     while (this.isWriting) {
       await delay(10);
     }
 
     if (Number.isNaN(id)) {
-      throw new Error("Invalid quiz id");
+      throw new Error(`Invalid ${this.modelName} id`);
     }
 
     const data = JSON.parse(
@@ -26,7 +47,7 @@ class QuizModel extends BaseModel<QuizType> {
     ) as QuizType[];
 
     if (data.length <= id || id < 0) {
-      throw new Error(`Quiz with id: ${id} doesn't exists`);
+      throw new Error(`${this.modelName} with id: ${id} doesn't exists`);
     }
 
     winstonLogger.info(`Fetching data for ${this.modelName} with id: ${id}`);

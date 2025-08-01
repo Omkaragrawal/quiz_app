@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import QuizModel from "#database/models/QuizModel";
 import type { QuizType } from "../../../../types/index";
 import express from "express";
 import type { Request, Response } from "express";
@@ -16,15 +17,14 @@ app.use(quizRouteAuthenticationMiddleware);
 
 // Routes
 // Get all quiz
-app.get("/quiz", async (req: Request, res: Response): Promise<void> => {
-  if (!req.user?.id) {
-    res.status(404).send("User not found, please try again later.");
-    return;
-  }
+app.get("/quiz/all", async (_, res: Response): Promise<void> => {
+  //TODO: User Authorization and other checks
+  // if (!req.user?.id) {
+  //   res.status(404).send("User not found, please try again later.");
+  //   return;
+  // }
 
-  await Promise.resolve();
-
-  const quiz = [] as QuizType;
+  const quiz = await QuizModel.getAll();
 
   res.json(quiz);
 });
@@ -52,17 +52,15 @@ app.get(
       res.status(403).json(validationResult(req).array());
       return;
     }
-    // const { id } = matchedData<{ id: number }>(req);
-    matchedData<{ id: number }>(req);
 
-    await Promise.resolve();
+    const { id } = matchedData<{ id: number }>(req);
 
     if (!req.user?.id) {
       res.status(404).send("User not found, please try again later.");
       return;
     }
 
-    const quiz = [] as QuizType;
+    const quiz = await QuizModel.findById(Number(id));
 
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!quiz) {
@@ -110,7 +108,7 @@ app.post(
         exists: { options: { checkNull: true } },
         isString: true,
         escape: true,
-        isLength: { options: { min: 5 } },
+        isLength: { options: { min: 4, max: 4 } },
         notEmpty: { options: { ignore_whitespace: true } },
         trim: true,
         errorMessage: "Please enter a valid option",
@@ -120,13 +118,6 @@ app.post(
         isInt: { options: { min: 0, max: 3 } },
         toInt: true,
         errorMessage: "Please enter a valid answer",
-      },
-      notes: {
-        in: ["body"],
-        optional: { options: { nullable: true } },
-        isString: true,
-        trim: true,
-        escape: true,
       },
     }),
   ),
@@ -140,21 +131,13 @@ app.post(
         res.status(403).json(validationResult(req).array());
         return;
       }
-      // const { quiz } = matchedData<{
-      matchedData<{
+      const { quiz } = matchedData<{
         quiz: QuizType;
-        notes?: string | null;
       }>(req);
 
-      await Promise.resolve();
+      await QuizModel.create(quiz);
 
-      const now = new Date();
-      const expiresAt = new Date(now);
-      expiresAt.setDate(expiresAt.getDate() + 14); // 14 days by default
-
-      const newQuiz = [] as QuizType;
-
-      res.status(201).json(newQuiz);
+      res.status(201).json(quiz);
     } catch (err) {
       req.logger.log("error", { err });
       res.status(500).send("Issue in saving the quiz, please try again later.");
@@ -212,13 +195,6 @@ app.patch(
         toInt: true,
         errorMessage: "Please enter a valid answer",
       },
-      notes: {
-        in: ["body"],
-        optional: { options: { nullable: true } },
-        isString: true,
-        trim: true,
-        escape: true,
-      },
     }),
   ),
   async (req: Request, res: Response): Promise<void> => {
@@ -232,35 +208,31 @@ app.patch(
         res.status(403).json(validationResult(req).array());
         return;
       }
-      const { id, notes: newNote } = matchedData<{
+      const { id, quiz } = matchedData<{
         id: number;
         quiz: QuizType;
-        notes?: string | null;
       }>(req);
 
-      await Promise.resolve();
+      try {
+        const { old: oldQuiz, new: updatedQuiz } = await QuizModel.update(
+          id,
+          quiz,
+        );
 
-      const notes = {} as { notes: string | null };
+        req.logger.log("info", `Quiz with ID: ${id} was update`, {
+          oldData: oldQuiz,
+          newData: updatedQuiz,
+        });
 
-      if (newNote === null || newNote) {
-        notes.notes = newNote;
+        res.redirect(303, "/quiz/view/" + JSON.stringify(updatedQuiz));
+      } catch (error) {
+        if ((error as Error).message.includes("doesn't exists")) {
+          res.status(404).json({ message: "Quiz not found" });
+          return;
+        }
+
+        throw error;
       }
-
-      const [affectedRowCountOld, oldQuiz] = [] as unknown[];
-
-      if (affectedRowCountOld) {
-        res.status(404).json({ message: "Quiz not found" });
-        return;
-      }
-
-      const updatedQuiz = {};
-
-      req.logger.log("info", `Quiz with ID: ${id} was update`, {
-        oldData: oldQuiz,
-        newData: updatedQuiz,
-      });
-
-      res.redirect(303, "/quiz/view/" + JSON.stringify(updatedQuiz));
     } catch (err) {
       req.logger.log("crit", { err });
       res

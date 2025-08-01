@@ -25,7 +25,7 @@ abstract class BaseModel<ModelType> {
     }
 
     if (Number.isNaN(id)) {
-      throw new Error("Invalid quiz id");
+      throw new Error(`Invalid ${this.modelName} id`);
     }
 
     const data = JSON.parse(
@@ -33,7 +33,7 @@ abstract class BaseModel<ModelType> {
     ) as ModelType[];
 
     if (data.length <= id || id < 0) {
-      throw new Error(`Quiz with id: ${id} doesn't exists`);
+      throw new Error(`${this.modelName} with id: ${id} doesn't exists`);
     }
 
     winstonLogger.info(`Fetching data for ${this.modelName} with id: ${id}`);
@@ -51,7 +51,9 @@ abstract class BaseModel<ModelType> {
       await fs.readFile(this.filePath, "utf-8"),
     ) as ModelType[];
 
-    winstonLogger.info(`Inserted a new ${this.modelName}:`, { quiz: model });
+    winstonLogger.info(`Inserted a new ${this.modelName}:`, {
+      [this.modelName]: model,
+    });
 
     data.push(model);
 
@@ -61,7 +63,10 @@ abstract class BaseModel<ModelType> {
     return data.length - 1;
   }
 
-  public async update(id: number, updatedQuiz: ModelType): Promise<ModelType> {
+  public async update(
+    id: number,
+    updatedModel: ModelType,
+  ): Promise<{ old: ModelType; new: ModelType }> {
     while (this.isWriting) {
       await delay(10);
     }
@@ -75,16 +80,20 @@ abstract class BaseModel<ModelType> {
       throw new Error(`${this.modelName} with id: ${id} doesn't exists`);
     }
 
-    const oldQuiz = data[id];
+    const oldModel = data[id];
 
-    winstonLogger.info("Updated a quiz: ", { id, oldQuiz, updatedQuiz });
+    winstonLogger.info(`Updated a ${this.modelName}: `, {
+      id,
+      oldModel,
+      updatedModel,
+    });
 
-    data[id] = updatedQuiz;
+    data[id] = updatedModel;
 
     await fs.writeFile(this.filePath, JSON.stringify(data), "utf8");
 
     this.isWriting = false;
-    return updatedQuiz;
+    return { old: oldModel, new: { id, data: updatedModel } as ModelType };
   }
 
   public async delete(id: number): Promise<void> {
@@ -98,12 +107,14 @@ abstract class BaseModel<ModelType> {
     ) as ModelType[];
 
     if (data.length <= id || id < 0) {
-      throw new Error(`Quiz with id: ${id} doesn't exists`);
+      throw new Error(`${this.modelName} with id: ${id} doesn't exists`);
     }
 
-    data = data.filter((quiz, index) => {
+    data = data.filter((model, index) => {
       if (index === id) {
-        winstonLogger.info(`Deleting the ${this.modelName}:`, { quiz });
+        winstonLogger.info(`Deleting the ${this.modelName}:`, {
+          [this.modelName]: model,
+        });
         return false;
       }
 
