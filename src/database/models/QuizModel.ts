@@ -35,7 +35,7 @@ class QuizModel extends BaseModel<QuizType> {
           id,
           data: quiz.map((question) => ({
             question: question.question,
-            option: question.option,
+            options: question.options,
           })),
         }) as unknown as QuizType,
     );
@@ -62,9 +62,9 @@ class QuizModel extends BaseModel<QuizType> {
 
     return {
       id,
-      data: data[id].map((question) => ({
-        question: question.question,
-        option: question.option,
+      data: data[id].map((entry) => ({
+        question: entry.question,
+        options: entry.options,
       })),
     } as unknown as QuizType;
   }

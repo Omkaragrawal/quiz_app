@@ -57,20 +57,18 @@ app.get(
 
     const { id } = matchedData<{ id: number }>(req);
 
-    if (!req.user?.id) {
-      res.status(404).send("User not found, please try again later.");
+    try {
+      const quiz = await QuizModel.findById(Number(id));
+      res.json(quiz);
       return;
+    } catch (error) {
+      if ((error as Error).message.includes("doesn't exists")) {
+        res.status(404).json({ message: "Quiz not found" });
+        return;
+      }
+
+      throw error;
     }
-
-    const quiz = await QuizModel.findById(Number(id));
-
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    if (!quiz) {
-      res.status(404).json({ message: "Quiz not found" });
-      return;
-    }
-
-    res.json(quiz);
   },
 );
 
@@ -139,9 +137,9 @@ app.post(
         quiz: QuizType;
       }>(req);
 
-      await QuizModel.create(quiz);
+      const id = await QuizModel.create(quiz);
 
-      res.status(201).json(quiz);
+      res.status(201).json({ id, data: quiz });
     } catch (err) {
       req.logger.log("error", { err });
       res.status(500).send("Issue in saving the quiz, please try again later.");
@@ -189,7 +187,7 @@ app.patch(
       "quiz.*.options": {
         exists: { options: { checkNull: true } },
         isArray: true,
-        isLength: { options: { min: 4, max: 4 } },
+        isLength: { options: { min: 4 } },
         toArray: true,
         errorMessage: "Please enter valid options",
       },

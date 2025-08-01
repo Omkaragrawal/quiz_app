@@ -9,7 +9,7 @@ export interface User {
 
 export interface QuestionType {
   question: string;
-  option: string[];
+  options: string[];
   answer: 0 | 1 | 2 | 3;
 }
 
