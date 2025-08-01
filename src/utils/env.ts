@@ -94,7 +94,7 @@ JWT_SECRET=abcd
   } else if ((env[key] as string).length < 18) {
     errors.push({
       key,
-      error: "Please enter the value for the secret",
+      error: "Please enter the value of at least 16 characters for the secret",
     });
   }
 

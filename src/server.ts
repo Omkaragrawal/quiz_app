@@ -1,4 +1,3 @@
-import type { NextFunction } from "express";
 import express, { type Request, type Response } from "express";
 import compression from "compression";
 import Env from "#utils/env";
@@ -9,7 +8,7 @@ import {
   addLoggerAndRequestIdMiddleware,
   helmetMiddleware,
   morganLogger,
-  quizRouteAuthenticationMiddleware,
+  // quizRouteAuthenticationMiddleware,
   routeNoAuthenticationMiddleware,
   winstonLogger,
 } from "server_middleware";
@@ -44,21 +43,10 @@ server.use("/api/v1", apiRouter);
 server.get(
   "/",
   routeNoAuthenticationMiddleware,
-  (_: Request, __: Response, next: NextFunction) => {
-    return next();
+  (_: Request, res: Response) => {
+    res.send("Hello World!!!");
   },
 );
-
-server.use([
-  (req: Request, res: Response, next: NextFunction): void => {
-    if (!req.path.startsWith("/quiz")) {
-      next();
-    } else {
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      quizRouteAuthenticationMiddleware(req, res, next);
-    }
-  },
-]);
 
 server.listen(Env.PORT, (): void => {
   winstonLogger.log("debug", `Ready on http://localhost:${Env.PORT as string}`);

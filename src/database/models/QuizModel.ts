@@ -1,14 +1,22 @@
 import fs from "fs/promises";
+import { fileURLToPath } from "node:url";
+
+import { delay } from "#utils/utils";
 
 import BaseModel from "./BaseModel";
 import { type QuizType } from "../../types/index";
-import { delay } from "#utils/utils";
 import { winstonLogger } from "server_middleware";
+import path from "path";
 
 class QuizModel extends BaseModel<QuizType> {
   protected override isWriting = false;
 
-  protected override filePath = "../data/quiz.json";
+  protected override filePath = fileURLToPath(
+    import.meta.resolve(
+      path.join("..", "data", "quiz.json"),
+      import.meta.dirname,
+    ),
+  );
 
   protected override modelName = "Quiz";
 

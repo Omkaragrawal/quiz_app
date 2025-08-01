@@ -1,11 +1,19 @@
-import { delay } from "#utils/utils";
 import fs from "fs/promises";
+import path from "path";
+import { fileURLToPath } from "url";
+
+import { delay } from "#utils/utils";
 import { winstonLogger } from "server_middleware";
 
 abstract class BaseModel<ModelType> {
   protected isWriting = false;
 
-  protected filePath = "../data/base.json";
+  protected filePath = fileURLToPath(
+    import.meta.resolve(
+      path.join("..", "data", "base.json"),
+      import.meta.dirname,
+    ),
+  );
 
   protected modelName = "Base";
 

@@ -102,18 +102,18 @@ app.post(
       "quiz.*.options": {
         exists: { options: { checkNull: true } },
         isArray: true,
-        isLength: { options: { min: 4, max: 4 } },
+        isLength: { options: { min: 4 } },
         toArray: true,
         errorMessage: "Please enter valid options",
       },
       "quiz.*.options.*": {
         exists: { options: { checkNull: true } },
         isString: true,
-        escape: true,
-        isLength: { options: { min: 4, max: 4 } },
+        // escape: true,
+        // isLength: { options: { min: 5 } },
         notEmpty: { options: { ignore_whitespace: true } },
         trim: true,
-        errorMessage: "Please enter a valid option",
+        errorMessage: "Please enter a valid option statement",
       },
       "quiz.*.answer": {
         exists: { options: { checkNull: true } },
