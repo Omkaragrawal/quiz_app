@@ -9,11 +9,12 @@ import {
   matchedData,
   validationResult,
 } from "express-validator";
-import { quizRouteAuthenticationMiddleware } from "server_middleware";
 
 const app = express.Router();
 
-app.use(quizRouteAuthenticationMiddleware);
+//TODO: User Authorization and other checks
+// import { quizRouteAuthenticationMiddleware } from "server_middleware";
+// app.use(quizRouteAuthenticationMiddleware);
 
 // Routes
 // Get all quiz
@@ -48,10 +49,11 @@ app.get(
     }),
   ),
   async (req: Request, res: Response): Promise<void> => {
-    if (!validationResult(req).isEmpty()) {
-      res.status(403).json(validationResult(req).array());
-      return;
-    }
+    //TODO: User Authorization and other checks
+    // if (!req.user?.id) {
+    //   res.status(404).send("User not found, please try again later.");
+    //   return;
+    // }
 
     const { id } = matchedData<{ id: number }>(req);
 
@@ -123,10 +125,12 @@ app.post(
   ),
   async (req: Request, res: Response): Promise<void> => {
     try {
-      if (!req.user?.id) {
-        res.status(404).send("User not found, please try again later.");
-        return;
-      }
+      //TODO: User Authorization and other checks
+      // if (!req.user?.id) {
+      //   res.status(404).send("User not found, please try again later.");
+      //   return;
+      // }
+
       if (!validationResult(req).isEmpty()) {
         res.status(403).json(validationResult(req).array());
         return;
@@ -199,10 +203,11 @@ app.patch(
   ),
   async (req: Request, res: Response): Promise<void> => {
     try {
-      if (!req.user?.id) {
-        res.status(404).send("User not found, please try again later.");
-        return;
-      }
+      //TODO: User Authorization and other checks
+      // if (!req.user?.id) {
+      //   res.status(404).send("User not found, please try again later.");
+      //   return;
+      // }
 
       if (!validationResult(req).isEmpty()) {
         res.status(403).json(validationResult(req).array());
@@ -224,7 +229,7 @@ app.patch(
           newData: updatedQuiz,
         });
 
-        res.redirect(303, "/quiz/view/" + JSON.stringify(updatedQuiz));
+        res.json(updatedQuiz);
       } catch (error) {
         if ((error as Error).message.includes("doesn't exists")) {
           res.status(404).json({ message: "Quiz not found" });
@@ -263,22 +268,28 @@ app.delete(
   ),
   async (req: Request, res: Response): Promise<void> => {
     try {
+      //TODO: User Authorization and other checks
+      // if (!req.user?.id) {
+      //   res.status(404).send("User not found, please try again later.");
+      //   return;
+      // }
+
       if (!validationResult(req).isEmpty()) {
         res.status(403).json(validationResult(req).array());
         return;
       }
-      matchedData<{ id: number }>(req);
+      const { id } = matchedData<{ id: number }>(req);
 
-      await Promise.resolve();
+      try {
+        await QuizModel.delete(Number(id));
+      } catch (error) {
+        if ((error as Error).message.includes("doesn't exists")) {
+          res.status(404).json({ message: "Quiz not found" });
+          return;
+        }
 
-      const [affectedRowCount, quiz] = [] as unknown[];
-
-      if (affectedRowCount) {
-        res.status(404).json({ message: "Quiz not found" });
-        return;
+        throw error;
       }
-
-      req.logger.log("info", `Quiz with ID: ${1} was marked as deleted`, quiz);
 
       res.status(204).json({ success: true });
     } catch (err) {
