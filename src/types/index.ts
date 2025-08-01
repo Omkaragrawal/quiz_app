@@ -7,11 +7,14 @@ export interface User {
   updatedAt: string | DateTime;
 }
 
-export type QuizType = {
+export interface QuestionType {
   question: string;
   option: string[];
   answer: 0 | 1 | 2 | 3;
-}[];
+}
+
+export type QuizType = QuestionType[];
+
 export enum EnvironmentKeysEnum {
   // eslint-disable-next-line @typescript-eslint/naming-convention
   NODE_ENV = "NODE_ENV",
