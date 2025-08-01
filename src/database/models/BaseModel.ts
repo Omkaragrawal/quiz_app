@@ -110,7 +110,7 @@ abstract class BaseModel<ModelType> {
     }
     this.isWriting = true;
 
-    let data = JSON.parse(
+    const data = JSON.parse(
       await fs.readFile(this.filePath, "utf-8"),
     ) as ModelType[];
 
@@ -118,15 +118,12 @@ abstract class BaseModel<ModelType> {
       throw new Error(`${this.modelName} with id: ${id} doesn't exists`);
     }
 
-    data = data.filter((model, index) => {
-      if (index === id) {
-        winstonLogger.info(`Deleting the ${this.modelName}:`, {
-          [this.modelName]: model,
-        });
-        return false;
-      }
+    const deletedModel = data[id];
 
-      return true;
+    (data as (Record<string, unknown> | undefined)[])[id] = undefined;
+
+    winstonLogger.info(`Deleting the ${this.modelName}:`, {
+      [this.modelName]: deletedModel,
     });
 
     await fs.writeFile(this.filePath, JSON.stringify(data), "utf8");

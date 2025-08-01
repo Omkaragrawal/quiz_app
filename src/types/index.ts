@@ -17,6 +17,14 @@ export type QuizType = QuestionType[];
 
 export type UserType = Record<string, unknown>;
 
+export interface ResponseType {
+  userId: number;
+  responses: {
+    score: number;
+    responses: number[];
+  }[];
+}
+
 export enum EnvironmentKeysEnum {
   // eslint-disable-next-line @typescript-eslint/naming-convention
   NODE_ENV = "NODE_ENV",
